@@ -18,6 +18,8 @@ Here's =repeat-help= applied to the =smerge-mode= keymap, which is used by Emacs
 
 The window to the right lists the invoked keys.
 
+For an introduction to Emacs' =repeat-mode= (including more demos), see [[https://karthinks.com/software/it-bears-repeating][this write-up]].
+
 * Setup
 Clone this repository and call =M-x package-install-from-file⮐= on the directory. Requires Emacs 28 or higher.
 
