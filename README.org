@@ -1,0 +1,49 @@
+#+title: Repeat-Help: Key descriptions for Emacs' Repeat Mode
+
+Emacs 28+ includes a minor mode named =repeat= that enables calling commands under a shared prefix key easily, without having to type in the prefix each time. So you can switch windows repeatedly with ~C-x o o o...~ instead of ~C-x o C-x o C-x o...~, undo repeatedly with ~C-x u u u...~, jump through headings with ~n~ and ~p~ instead of ~C-c @ C-n~ and ~C-c @ C-p~,  and so on.
+
+This package adds key a description popup when a "repeat map" is active, showing you the available keys and commands. This is available through a generic interface, with built-in support for an [[https://github.com/oantolin/embark#showing-information-about-available-targets-and-actions][Embark indicator]] or a [[https://github.com/justbur/emacs-which-key/][Which Key]] popup:
+
+Embark & Which Key popups: Repeating =diff-hl= commands
+#+html: <p align="center" width="100%"><img src="https://user-images.githubusercontent.com/8607532/177290774-a68de45d-16f4-48f0-b7ab-25c24e0b5855.png" width="50%"></img><img src="https://user-images.githubusercontent.com/8607532/177291096-b7d1962b-d457-496a-96fd-6258b93e728a.png" width="50%"></img></p>
+
+Embark & Which Key popups: Repeating =outline= navigation commands
+#+html: <p align="center" width="100%"><img src="https://user-images.githubusercontent.com/8607532/177291022-b5151509-d25e-4a89-bda4-33b89c8c40a3.png" width="50%"></img><img src="https://user-images.githubusercontent.com/8607532/177291140-5d08ea5e-be6c-41b4-bfdc-3d2e4ccfd97f.png" width="50%"></img></p>
+
+For most keymaps, this is simpler, easier and more consistent than defining a custom [[https://github.com/abo-abo/hydra][Hydra]] or [[https://github.com/magit/transient][Transient]] interface (see Alternatives section for [[https://gitlab.com/jjzmajic/hercules.el][Hercules]]). There is no separate "setup" phase: You activate the repeat functionality through the regular Emacs keybinding for the command. And no "dismiss" phase: the popup disappears when you do press a key (like typing text) that's not included in the repeat map.
+
+Here's =repeat-help= applied to the =smerge-mode= keymap, which is used by Emacs when resolving Git conflicts:
+
+#+html: <p align="center" width="100%"><video src="https://user-images.githubusercontent.com/8607532/177309987-fc76c006-900b-4b56-abc9-4a27b1d4b349.mp4"><a href="https://user-images.githubusercontent.com/8607532/177309987-fc76c006-900b-4b56-abc9-4a27b1d4b349.mp4">[VIDEO]</a></video></p>
+
+The window to the right lists the invoked keys.
+
+* Setup
+Clone this repository and call =M-x package-install-from-file⮐= on the directory. Requires Emacs 28 or higher.
+
+If you use the Straight package manager, you can run
+#+BEGIN_SRC emacs-lisp
+(straight-use-package '(repeat-help :host github :recipe "karthink/repeat-help"))
+#+END_SRC
+
+* Usage
+To use this feature, turn on =repeat-mode= (part of Emacs) and =repeat-help-mode=.
+
+By default, the persistent key description popup is available as a toggle bound to ~C-h~.
+
+* Customization
+You can change the toggle key using the variable =repeat-help-key=. If you want the popup to be automatic instead of a toggle, you can customize =repeat-help-auto=.
+
+Repeat-Help tries to use an Embark indicator by default, falling back on Which Key and the built-in echo area message system. To specify a backend you can customize =repeat-help-popup-type=.
+
+You can also plug in your own key description function into the interface. For example, it should be possible to:
+- Tweak =embark-prefix-help-command= so you can select a command from a =completing-read= menu and then continue to use the repeat map.
+- Provide a which-key function with modified defaults that removes the leading part of each description, showing =n → next-hunk= instead of =n → diff-hl-next-hunk=, and so on.
+
+* Alternatives
+There are many ways to create a temporary mode for quick access to a keymap. The Emacs API facilitates this through setting transient keymaps with =set-transient-map=. For visual aid and to group together disparate commands, there are the following built-in commands and third party packages:
+- =prefix-help-command= and =embark-prefix-help-command= will show you available keys (optionally in a menu), but they end the repeat chain and you have to start over.
+- [[https://gitlab.com/jjzmajic/hercules.el][Hercules]]:  Repeat-Help is closest in spirit to Hercules, which also uses existing keymaps as the basis for a repeat interface. This package is more basic in that it only augments the built-in =repeat-mode= functionality and does not provide any macros for defining custom behavior.
+- [[https://github.com/abo-abo/hydra/][Hydra]] and [[https://github.com/magit/transient][Transient]] provide significantly more powerful interfaces for dispatching commands, but require explicit definitions with full key listings and lots of boilerplate. They're well suited for more complicated tasks than repeating small sets of commands.
+
+Repeat Mode with Repeat Help is not as powerful, but much simpler and more uniform as an extension of built-in functionality.

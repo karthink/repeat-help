@@ -35,7 +35,7 @@
 ;; To have the popup show automatically, set `repeat-help-auto' to true.
 ;;
 ;; By default the package tries to use an Embark key indicator. To use Which-Key
-;; or the built-in hints, customize `repeat-help-prompt-type'.
+;; or the built-in hints, customize `repeat-help-popup-type'.
 
 ;;; Code:
 (require 'repeat)
@@ -74,7 +74,7 @@ This is a string suitable for input to `kbd'."
   :group 'repeat-help
   :type 'string)
 
-(defcustom repeat-help-prompt-type
+(defcustom repeat-help-popup-type
   (cond ((featurep 'embark) 'embark)
         ((featurep 'which-key) 'which-key)
         (t t))
@@ -93,22 +93,26 @@ latter will fall back on the echo area message built into
 ;;; Manual activation
 (defsubst repeat-help--prompt-function ()
   "Select function to prompt."
-  (pcase repeat-help-prompt-type
-    ('embark #'repeat-help-embark-dispatch)
-    ('which-key #'repeat-help-which-key-dispatch)
-    (_ #'repeat-echo-message)))
+  (pcase repeat-help-popup-type
+    ('embark #'repeat-help-embark-toggle)
+    ('which-key #'repeat-help-which-key-toggle)
+    (_ (lambda (keymap)
+         (interactive (list (or repeat-map
+                                (let ((this-command last-command))
+                                  (repeat--command-property 'repeat-map)))))
+         (repeat-echo-message keymap)))))
 
 ;;; Auto activation
 (defsubst repeat-help--autoprompt-function ()
   "Select function to prompt automatically."
-  (pcase repeat-help-prompt-type
+  (pcase repeat-help-popup-type
     ('embark #'repeat-help--embark-indicate)
     ('which-key #'repeat-help--which-key-popup)
     (_ #'repeat-echo-message)))
 
 (defsubst repeat-help--abort-function ()
   "Select function to abort prompt."
-  (pcase repeat-help-prompt-type
+  (pcase repeat-help-popup-type
     ('embark #'repeat-help--embark-abort)
     ('which-key #'which-key--hide-popup)
     (_ (lambda () (repeat-echo-message nil)))))
@@ -119,7 +123,7 @@ latter will fall back on the echo area message built into
   (which-key--create-buffer-and-show
    nil (symbol-value keymap)))
 
-(defun repeat-help-which-key-dispatch (keymap)
+(defun repeat-help-which-key-toggle (keymap)
   "Toggle the Which Key popup for KEYMAP."
   (interactive (list (or repeat-map
                          (let ((this-command last-command))
@@ -130,7 +134,10 @@ latter will fall back on the echo area message built into
     (repeat-help--which-key-popup keymap)))
 
 ;; Embark-specific code
-(defun repeat-help-embark-dispatch (keymap)
+
+;; FIXME: Do not use quit-window, the prompt window's quit-restore parameter can
+;; be out of date. We use delete-window since we control its display fully.
+(defun repeat-help-embark-toggle (keymap)
   "Toggle the Embark verbose key indicator for KEYMAP."
   (interactive (list (or repeat-map
                          (let ((this-command last-command))
@@ -138,7 +145,8 @@ latter will fall back on the echo area message built into
   (setq this-command last-command)
   (if-let ((win (get-buffer-window
                  "*Repeat Commands*" 'visible)))
-      (quit-window nil win)
+      ;; (quit-window nil win)
+      (delete-window win)
     (repeat-help--embark-indicate keymap)))
 
 (defun repeat-help--embark-indicate (keymap)
@@ -164,7 +172,9 @@ latter will fall back on the echo area message built into
   (when-let ((win
               (get-buffer-window
                "*Repeat Commands*" 'visible)))
-    (quit-window 'kill-buffer win)))
+    ;; (quit-window 'kill-buffer win)
+    (kill-buffer (window-buffer win))
+    (delete-window win)))
 
 ;; Backend-independent code
 (defvar repeat-help--echo-function #'ignore)
@@ -179,7 +189,7 @@ latter will fall back on the echo area message built into
       (repeat-help--no-quit #'recenter-top-bottom '(4)))
     map))
 
-(defun repeat-help--embark-activate ()
+(defun repeat-help--activate ()
   "Allow displaying a help prompt for the active `repeat-map'.
 
 The key to toggle the prompt (`C-h' by default) is customizable
@@ -198,7 +208,7 @@ via `repeat-help-key'."
                 keymap)))
       (funcall (repeat-help--abort-function)))))
 
-(defun repeat-help--embark-activate-auto ()
+(defun repeat-help--activate-auto ()
   "Auto-activate a keymap indicator/popup for the active `repeat-map'."
   (if-let ((cmd (or this-command real-this-command))
            (keymap (or repeat-map
@@ -207,7 +217,7 @@ via `repeat-help-key'."
     (funcall (repeat-help--abort-function))))
 
 (defun repeat-help--no-quit (cmd &optional prefix)
-  "Return a function to Call CMD without breaking the repeat state.
+  "Return a function to Call CMD without exiting the repeat state.
 
 Optional PREFIX is supplied as the prefix arg to CMD."
   (lambda (arg)
@@ -232,13 +242,15 @@ area message built into `repeat-mode'."
   (if repeat-help-mode
       (progn
         (setq repeat-help--echo-function repeat-echo-function)
+        (setq repeat-echo-function #'ignore)
         (advice-add 'repeat-post-hook :after
                     (if repeat-help-auto
-                        #'repeat-help--embark-activate-auto
-                      #'repeat-help--embark-activate)))
-    (setq repeat-echo-function repeat-help--echo-function)
-    (advice-remove 'repeat-post-hook #'repeat-help--embark-activate-auto)
-    (advice-remove 'repeat-post-hook #'repeat-help--embark-activate)))
+                        #'repeat-help--activate-auto
+                      #'repeat-help--activate)))
+    (setq repeat-echo-function repeat-help--echo-function
+          repeat-help--echo-function #'ignore)
+    (advice-remove 'repeat-post-hook #'repeat-help--activate-auto)
+    (advice-remove 'repeat-post-hook #'repeat-help--activate)))
 
 (provide 'repeat-help)
 ;;; repeat-help.el ends here
