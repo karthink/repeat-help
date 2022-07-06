@@ -179,6 +179,16 @@ latter will fall back on the echo area message built into
 ;; Backend-independent code
 (defvar repeat-help--echo-function #'ignore)
 
+(defun repeat-help--no-quit (cmd &optional prefix)
+  "Return a function to Call CMD without exiting the repeat state.
+
+Optional PREFIX is supplied as the prefix arg to CMD."
+  (lambda (arg)
+    (interactive "p")
+    (setq this-command last-command)
+    (let ((current-prefix-arg (or prefix arg)))
+      (call-interactively cmd))))
+
 (defvar repeat-help-persist-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap scroll-other-window]
@@ -215,16 +225,6 @@ via `repeat-help-key'."
                        (repeat--command-property 'repeat-map))))
       (run-at-time 0 nil (repeat-help--autoprompt-function) keymap)
     (funcall (repeat-help--abort-function))))
-
-(defun repeat-help--no-quit (cmd &optional prefix)
-  "Return a function to Call CMD without exiting the repeat state.
-
-Optional PREFIX is supplied as the prefix arg to CMD."
-  (lambda (arg)
-    (interactive "p")
-    (setq this-command last-command)
-    (let ((current-prefix-arg (or prefix arg)))
-      (call-interactively cmd))))
 
 ;;;###autoload
 (define-minor-mode repeat-help-mode
