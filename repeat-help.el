@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; repeat-help shows key descriptions when using Emacs' repeat-mode.
+;; repeat-help shows key descriptions when using Emacs' `repeat-mode'.
 ;;
 ;; The description can be in the form a Which Key popup or an Embark indicator
 ;; (which see). To use it, enable `repeat-mode' (Emacs 28.0.5 and up) and
