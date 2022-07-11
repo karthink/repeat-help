@@ -12,21 +12,31 @@ Embark & Which Key popups: Repeating =outline= navigation commands
 
 For most keymaps, this is simpler, easier and more consistent than defining a custom [[https://github.com/abo-abo/hydra][Hydra]] or [[https://github.com/magit/transient][Transient]] interface (see Alternatives section for [[https://gitlab.com/jjzmajic/hercules.el][Hercules]]). There is no separate "setup" phase: You activate the repeat functionality through the regular Emacs keybinding for the command. And no "dismiss" phase: the popup disappears when you do press a key (like typing text) that's not included in the repeat map.
 
-Here's =repeat-help= applied to the =smerge-mode= keymap, which is used by Emacs when resolving Git conflicts:
+Here's =repeat-help= applied to the =smerge-mode= keymap, which is used by Emacs when resolving Git conflicts. The window to the right lists the invoked keys:
 
 #+html: <p align="center" width="100%"><video src="https://user-images.githubusercontent.com/8607532/177309987-fc76c006-900b-4b56-abc9-4a27b1d4b349.mp4"><a href="https://user-images.githubusercontent.com/8607532/177309987-fc76c006-900b-4b56-abc9-4a27b1d4b349.mp4">[VIDEO]</a></video></p>
-
-The window to the right lists the invoked keys.
 
 For an introduction to Emacs' =repeat-mode= (including more demos), see [[https://karthinks.com/software/it-bears-repeating][this write-up]].
 
 * Setup
-Clone this repository and call =M-x package-install-from-file⮐= on the directory. Requires Emacs 28 or higher.
+Requires Emacs 28 or higher.
 
-If you use the Straight package manager, you can run
-#+BEGIN_SRC emacs-lisp
-(straight-use-package '(repeat-help :host github :recipe "karthink/repeat-help"))
-#+END_SRC
+Repeat-Help is available on MELPA. After [[https://github.com/melpa/melpa#usage][adding MELPA to your package archives]], you can install it by running =M-x package-install⮐= =repeat-help= in Emacs, or with the below =use-package= block.
+
+Alternatively: Clone this repository and call =M-x package-install-from-file⮐= on the directory.
+
+** With =use-package=
+#+begin_src emacs-lisp
+  (use-package repeat-help
+    :ensure t ;; or :straight t
+    :hook (repeat-mode . repeat-help-mode))
+#+end_src
+
+** Without =use-package=
+To use repeat-help with Emacs' repeat feature, run
+#+begin_src emacs-lisp
+(add-hook 'repeat-mode-hook #'repeat-help-mode)
+#+end_src
 
 * Usage
 To use this feature, turn on =repeat-mode= (part of Emacs) and =repeat-help-mode=.
