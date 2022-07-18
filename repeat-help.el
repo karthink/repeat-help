@@ -85,8 +85,8 @@ latter will fall back on the echo area message built into
 `repeat-mode'."
   :group 'repeat-help
   :type '(choice
-          (const :tag "Embark indicator" 'embark)
-          (const :tag "Which Key indicator" 'which-key)
+          (const :tag "Embark indicator" embark)
+          (const :tag "Which Key indicator" which-key)
           (const :tag "Default indicator" t)))
 
 ;; Choose between Embark and Which Key when dispatching
