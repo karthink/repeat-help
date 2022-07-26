@@ -197,6 +197,12 @@ Optional PREFIX is supplied as the prefix arg to CMD."
       (repeat-help--no-quit #'scroll-other-window-down))
     (define-key map [remap recenter-top-bottom]
       (repeat-help--no-quit #'recenter-top-bottom '(4)))
+    (define-key map [remap evil-scroll-line-to-center]
+      (repeat-help--no-quit #'evil-scroll-line-to-center))
+    (define-key map [remap evil-scroll-line-to-bottom]
+      (repeat-help--no-quit #'evil-scroll-line-to-bottom))
+    (define-key map [remap evil-scroll-line-to-top]
+      (repeat-help--no-quit #'evil-scroll-line-to-top))
     map))
 
 (defun repeat-help--activate ()
