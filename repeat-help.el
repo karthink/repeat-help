@@ -126,9 +126,9 @@ latter will fall back on the echo area message built into
 (defun repeat-help-which-key-toggle (keymap)
   "Toggle the Which Key popup for KEYMAP."
   (interactive (list (or repeat-map
-                         (let ((this-command real-last-command))
+                         (let ((this-command last-command))
                            (repeat--command-property 'repeat-map)))))
-  (setq this-command real-last-command)
+  (setq this-command last-command)
   (if (which-key--popup-showing-p)
       (which-key--hide-popup)
     (repeat-help--which-key-popup keymap)))
@@ -140,9 +140,9 @@ latter will fall back on the echo area message built into
 (defun repeat-help-embark-toggle (keymap)
   "Toggle the Embark verbose key indicator for KEYMAP."
   (interactive (list (or repeat-map
-                         (let ((this-command real-last-command))
+                         (let ((this-command last-command))
                            (repeat--command-property 'repeat-map)))))
-  (setq this-command real-last-command)
+  (setq this-command last-command)
   (if-let ((win (get-buffer-window
                  "*Repeat Commands*" 'visible)))
       ;; (quit-window nil win)
@@ -185,7 +185,7 @@ latter will fall back on the echo area message built into
 Optional PREFIX is supplied as the prefix arg to CMD."
   (lambda (arg)
     (interactive "p")
-    (setq this-command real-last-command)
+    (setq this-command last-command)
     (let ((current-prefix-arg (or prefix arg)))
       (call-interactively cmd))))
 
