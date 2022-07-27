@@ -98,7 +98,7 @@ latter will fall back on the echo area message built into
     ('which-key #'repeat-help-which-key-toggle)
     (_ (lambda (keymap)
          (interactive (list (or repeat-map
-                                (let ((this-command real-last-command))
+                                (let ((this-command last-command))
                                   (repeat--command-property 'repeat-map)))))
          (repeat-echo-message keymap)))))
 
