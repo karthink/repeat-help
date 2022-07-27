@@ -187,8 +187,9 @@ latter will fall back on the echo area message built into
 
 Optional PREFIX is supplied as the prefix arg to CMD."
   (lambda (arg)
-    (setq this-command last-command)
     (interactive "P")
+    (setq this-command last-command
+          real-this-command real-last-command)
     (let ((current-prefix-arg (or prefix arg)))
       (call-interactively cmd))))
 
