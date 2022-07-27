@@ -98,7 +98,8 @@ latter will fall back on the echo area message built into
     ('which-key #'repeat-help-which-key-toggle)
     (_ (lambda (keymap)
          (interactive (list (or repeat-map
-                                (let ((this-command last-command))
+                                (let ((this-command last-command)
+                                      (real-this-command real-last-command))
                                   (repeat--command-property 'repeat-map)))))
          (repeat-echo-message keymap)))))
 
@@ -126,7 +127,8 @@ latter will fall back on the echo area message built into
 (defun repeat-help-which-key-toggle (keymap)
   "Toggle the Which Key popup for KEYMAP."
   (interactive (list (or repeat-map
-                         (let ((this-command last-command))
+                         (let ((this-command last-command)
+                               (real-this-command real-last-command))
                            (repeat--command-property 'repeat-map)))))
   (setq this-command last-command)
   (if (which-key--popup-showing-p)
@@ -140,7 +142,8 @@ latter will fall back on the echo area message built into
 (defun repeat-help-embark-toggle (keymap)
   "Toggle the Embark verbose key indicator for KEYMAP."
   (interactive (list (or repeat-map
-                         (let ((this-command last-command))
+                         (let ((this-command last-command)
+                               (real-this-command real-last-command))
                            (repeat--command-property 'repeat-map)))))
   (setq this-command last-command)
   (if-let ((win (get-buffer-window
@@ -212,9 +215,10 @@ The key to toggle the prompt (`C-h' by default) is customizable
 via `repeat-help-key'."
   (when repeat-mode
     (if-let* ((rep-map-sym (or repeat-map
-                               (repeat--command-property 'repeat-map)))
-                (keymap (and (symbolp rep-map-sym)
-                             (symbol-value rep-map-sym))))
+                               (let ((real-this-command real-last-command))
+                                 (repeat--command-property 'repeat-map))))
+              (keymap (and (symbolp rep-map-sym)
+                                   (symbol-value rep-map-sym))))
         (set-transient-map
          (make-composed-keymap
           (list (let ((map (make-sparse-keymap)))
