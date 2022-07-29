@@ -91,38 +91,46 @@ latter will fall back on the echo area message built into
 
 ;; Choose between Embark and Which Key when dispatching
 ;;; Manual activation
-(defsubst repeat-help--prompt-function ()
+(define-inline repeat-help--prompt-function ()
   "Select function to prompt."
-  (pcase repeat-help-popup-type
-    ('embark #'repeat-help-embark-toggle)
-    ('which-key #'repeat-help-which-key-toggle)
-    (_ (lambda (keymap)
-         (interactive (list (or repeat-map
-                                (let ((this-command last-command)
-                                      (real-this-command real-last-command))
-                                  (repeat--command-property 'repeat-map)))))
-         (repeat-echo-message keymap)))))
+  (declare (side-effect-free t))
+  (inline-quote
+   (pcase repeat-help-popup-type
+     ('embark #'repeat-help-embark-toggle)
+     ('which-key #'repeat-help-which-key-toggle)
+     (_ (lambda (keymap)
+          (interactive (list (or repeat-map
+                                 (let ((this-command last-command)
+                                       (real-this-command real-last-command))
+                                   (repeat--command-property 'repeat-map)))))
+          (repeat-echo-message keymap))))))
 
 ;;; Auto activation
-(defsubst repeat-help--autoprompt-function ()
+(define-inline repeat-help--autoprompt-function ()
   "Select function to prompt automatically."
-  (pcase repeat-help-popup-type
-    ('embark #'repeat-help--embark-indicate)
-    ('which-key #'repeat-help--which-key-popup)
-    (_ #'repeat-echo-message)))
+  (declare (side-effect-free t))
+  (inline-quote
+   (pcase repeat-help-popup-type
+     ('embark #'repeat-help--embark-indicate)
+     ('which-key #'repeat-help--which-key-popup)
+     (_ #'repeat-echo-message))))
 
-(defsubst repeat-help--abort-function ()
+(define-inline repeat-help--abort-function ()
   "Select function to abort prompt."
-  (pcase repeat-help-popup-type
-    ('embark #'repeat-help--embark-abort)
-    ('which-key #'which-key--hide-popup)
-    (_ (lambda () (repeat-echo-message nil)))))
+  (declare (side-effect-free t))
+  (inline-quote
+   (pcase repeat-help-popup-type
+     ('embark #'repeat-help--embark-abort)
+     ('which-key #'which-key--hide-popup)
+     (_ (lambda () (repeat-echo-message nil))))))
 
 ;; Which-key specific code
-(defsubst repeat-help--which-key-popup (keymap)
+(define-inline repeat-help--which-key-popup (keymap)
   "Display a Which Key popup for KEYMAP."
-  (which-key--create-buffer-and-show
-   nil (symbol-value keymap)))
+  (inline-letevals (keymap)
+                  (inline-quote
+                   (which-key--create-buffer-and-show
+                    nil (symbol-value ,keymap)))))
 
 (defun repeat-help-which-key-toggle (keymap)
   "Toggle the Which Key popup for KEYMAP."
