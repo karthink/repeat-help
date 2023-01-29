@@ -215,6 +215,8 @@ Optional PREFIX is supplied as the prefix arg to CMD."
       (repeat-help--no-quit #'evil-scroll-line-to-bottom))
     (define-key map [remap evil-scroll-line-to-top]
       (repeat-help--no-quit #'evil-scroll-line-to-top))
+    (define-key map [remap reposition-window]
+      (repeat-help--no-quit #'reposition-window))
     map))
 
 (defun repeat-help--activate ()
