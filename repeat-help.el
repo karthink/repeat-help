@@ -91,42 +91,52 @@ latter will fall back on the echo area message built into
 
 ;; Choose between Embark and Which Key when dispatching
 ;;; Manual activation
-(defsubst repeat-help--prompt-function ()
+(define-inline repeat-help--prompt-function ()
   "Select function to prompt."
-  (pcase repeat-help-popup-type
-    ('embark #'repeat-help-embark-toggle)
-    ('which-key #'repeat-help-which-key-toggle)
-    (_ (lambda (keymap)
-         (interactive (list (or repeat-map
-                                (let ((this-command last-command))
-                                  (repeat--command-property 'repeat-map)))))
-         (repeat-echo-message keymap)))))
+  (declare (side-effect-free t))
+  (inline-quote
+   (pcase repeat-help-popup-type
+     ('embark #'repeat-help-embark-toggle)
+     ('which-key #'repeat-help-which-key-toggle)
+     (_ (lambda (keymap)
+          (interactive (list (or repeat-map
+                                 (let ((this-command last-command)
+                                       (real-this-command real-last-command))
+                                   (repeat--command-property 'repeat-map)))))
+          (repeat-echo-message keymap))))))
 
 ;;; Auto activation
-(defsubst repeat-help--autoprompt-function ()
+(define-inline repeat-help--autoprompt-function ()
   "Select function to prompt automatically."
-  (pcase repeat-help-popup-type
-    ('embark #'repeat-help--embark-indicate)
-    ('which-key #'repeat-help--which-key-popup)
-    (_ #'repeat-echo-message)))
+  (declare (side-effect-free t))
+  (inline-quote
+   (pcase repeat-help-popup-type
+     ('embark #'repeat-help--embark-indicate)
+     ('which-key #'repeat-help--which-key-popup)
+     (_ #'repeat-echo-message))))
 
-(defsubst repeat-help--abort-function ()
+(define-inline repeat-help--abort-function ()
   "Select function to abort prompt."
-  (pcase repeat-help-popup-type
-    ('embark #'repeat-help--embark-abort)
-    ('which-key #'which-key--hide-popup)
-    (_ (lambda () (repeat-echo-message nil)))))
+  (declare (side-effect-free t))
+  (inline-quote
+   (pcase repeat-help-popup-type
+     ('embark #'repeat-help--embark-abort)
+     ('which-key #'which-key--hide-popup)
+     (_ (lambda () (repeat-echo-message nil))))))
 
 ;; Which-key specific code
-(defsubst repeat-help--which-key-popup (keymap)
+(define-inline repeat-help--which-key-popup (keymap)
   "Display a Which Key popup for KEYMAP."
-  (which-key--create-buffer-and-show
-   nil (symbol-value keymap)))
+  (inline-letevals (keymap)
+                  (inline-quote
+                   (which-key--create-buffer-and-show
+                    nil (symbol-value ,keymap)))))
 
 (defun repeat-help-which-key-toggle (keymap)
   "Toggle the Which Key popup for KEYMAP."
   (interactive (list (or repeat-map
-                         (let ((this-command last-command))
+                         (let ((this-command last-command)
+                               (real-this-command real-last-command))
                            (repeat--command-property 'repeat-map)))))
   (setq this-command last-command)
   (if (which-key--popup-showing-p)
@@ -140,7 +150,8 @@ latter will fall back on the echo area message built into
 (defun repeat-help-embark-toggle (keymap)
   "Toggle the Embark verbose key indicator for KEYMAP."
   (interactive (list (or repeat-map
-                         (let ((this-command last-command))
+                         (let ((this-command last-command)
+                               (real-this-command real-last-command))
                            (repeat--command-property 'repeat-map)))))
   (setq this-command last-command)
   (if-let ((win (get-buffer-window
@@ -184,8 +195,9 @@ latter will fall back on the echo area message built into
 
 Optional PREFIX is supplied as the prefix arg to CMD."
   (lambda (arg)
-    (interactive "p")
-    (setq this-command last-command)
+    (interactive "P")
+    (setq this-command last-command
+          real-this-command real-last-command)
     (let ((current-prefix-arg (or prefix arg)))
       (call-interactively cmd))))
 
@@ -197,6 +209,12 @@ Optional PREFIX is supplied as the prefix arg to CMD."
       (repeat-help--no-quit #'scroll-other-window-down))
     (define-key map [remap recenter-top-bottom]
       (repeat-help--no-quit #'recenter-top-bottom '(4)))
+    (define-key map [remap evil-scroll-line-to-center]
+      (repeat-help--no-quit #'evil-scroll-line-to-center))
+    (define-key map [remap evil-scroll-line-to-bottom]
+      (repeat-help--no-quit #'evil-scroll-line-to-bottom))
+    (define-key map [remap evil-scroll-line-to-top]
+      (repeat-help--no-quit #'evil-scroll-line-to-top))
     (define-key map [remap reposition-window]
       (repeat-help--no-quit #'reposition-window))
     map))
@@ -208,9 +226,10 @@ The key to toggle the prompt (`C-h' by default) is customizable
 via `repeat-help-key'."
   (when repeat-mode
     (if-let* ((rep-map-sym (or repeat-map
-                               (repeat--command-property 'repeat-map)))
-                (keymap (and (symbolp rep-map-sym)
-                             (symbol-value rep-map-sym))))
+                               (let ((real-this-command real-last-command))
+                                 (repeat--command-property 'repeat-map))))
+              (keymap (and (symbolp rep-map-sym)
+                                   (symbol-value rep-map-sym))))
         (set-transient-map
          (make-composed-keymap
           (list (let ((map (make-sparse-keymap)))
